@@ -1,1 +1,2 @@
 # Content-Summary-Generator
+As the Content Summary Generator depicts the summarization of the following content, in this project I have completed the following project (still to do some more future works) in which whn you provide the youtube content to the frontend, you will get the summarized content of the video, whether the following subtitles are present or absent... It is my very first project of the MLDL, using the LLM of Gemini Pro for the summarization process. 
