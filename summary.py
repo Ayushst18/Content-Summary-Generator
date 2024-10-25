@@ -5,19 +5,36 @@ import os
 import google.generativeai as genai     #to use gemini pro LLM model
 import pvleopard    #to generate audio to text transcript
 from tempfile import NamedTemporaryFile     #used so to download audio file for temporary needs
-from pytube import YouTube      #for audio downloading of YouTube videos
+from pytubefix import YouTube      #for audio downloading of YouTube videos
 import textwrap
 from youtube_transcript_api import YouTubeTranscriptApi     #To check transcripts of the videos and if available then to extract it
 
 load_dotenv()  ## load all the environment variables
 
 
+
 #Here to add our provided generativeai api key to get the access of Gemini Pro
-genai.configure(api_key="Add Gemini Pro API Key")
+genai.configure(api_key="API KEY")
 
 
 #Fixed prompt to generate summary of the following content
-prompt = """Add you desired prompt"""
+prompt = """Generate a comprehensive summary of a YouTube video based on the provided transcript.
+Summary should include the main information, key topics discussed, target audience, and the overall theme of the video. 
+Consider the following guidelines:
+
+Identify and summarize the main topics covered in the video.
+
+Highlight the key points, insights, or arguments presented by the speaker.
+
+Determine who the target audience for the video is and why.
+
+Clearly articulate the central theme or purpose of the video.
+
+Ensure that the summary is concise, engaging, and informative.
+
+If applicable, mention any notable examples, anecdotes, or case studies discussed in the video.
+
+Use clear and straightforward language to make the summary accessible to a wide audience."""
 
 
 #This function will take the youtube transcript and check for the transcript availability.
@@ -57,30 +74,35 @@ def generate_gemini_content(transcript_text, prompt):
 
 
 #As api fails to get available transcript, programs redirects to downloading the audio file of the content.
+import urllib.error
+
 def download_audio(url):
     try:
         with NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
             audio_path = temp_file.name
 
             yt = YouTube(url)
-            audio_streams = yt.streams.filter(only_audio=True).order_by('abr').desc()
+            # Remove order_by and desc to test basic functionality
+            audio_streams = yt.streams.filter(only_audio=True)
             audio_stream = audio_streams.first()
 
-            audio_stream.download(filename=audio_path)
-            print(f"Audio downloaded to temporary file: {audio_path}")
-#This will download the audio file temporily, once transcript extracted, will get deleted automatically.
+            if audio_stream:
+                audio_stream.download(filename=audio_path)
+                print(f"Audio downloaded to temporary file: {audio_path}")
+            else:
+                print("No audio stream available")
             return audio_path
 
+    except urllib.error.HTTPError as e:
+        print(f"HTTP Error: {e.code} - {e.reason}")
     except Exception as e:
         print(f"Error downloading audio: {e}")
         return None
 
-
-
 #Transcription of audio using Speech to Text API of picovoice ai model
 def transcribe_audio(audio_path):
     try:
-        access_key = "Add yu Picovoice API Key" 
+        access_key = "API KEY" 
 
         handle = pvleopard.create(access_key)
         transcript, words = handle.process_file(audio_path)
